@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SAMA — Maryam Mahmoudi · Frontend Developer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg: '#f5f6f8', surface: '#ffffff', ink: '#101418', 'ink-soft': '#5a6570',
+          line: '#e7eaef', primary: '#00b5dd', 'primary-ink': '#06323d',
+          accent: '#0091b8', violet: '#6d28d9',
+        },
+        fontFamily: { display: ['Syne','sans-serif'], body: ['Inter','sans-serif'], mono: ['"JetBrains Mono"','monospace'] },
+        maxWidth: { container: '1200px' },
+      },
+    },
+  };
+</script>
+<style>
+  :root{ --primary:#00b5dd; --accent:#0091b8; }
+  *{ -webkit-font-smoothing:antialiased; }
+  html{ scroll-behavior:smooth; }
+  body{ font-family:'Inter',sans-serif; background:#f5f6f8; color:#101418; overflow-x:hidden; }
+  ::selection{ background:#cdeefb; color:#06323d; }
+  .font-display{ font-family:'Syne',sans-serif; }
+  .font-mono{ font-family:'JetBrains Mono',monospace; }
+  .material-symbols-outlined{ font-variation-settings:'FILL' 1,'wght' 400; }
+  .label-caps{ font-size:12px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; }
+
+  /* faint editorial backdrop — calm, not "AI gradient" */
+  .backdrop{ position:fixed; inset:0; z-index:-2; pointer-events:none;
+    background:
+      radial-gradient(60% 50% at 80% -5%, rgba(0,181,221,.07), transparent 70%),
+      radial-gradient(50% 45% at 0% 10%, rgba(0,181,221,.05), transparent 70%);
+  }
+  .grid-bg{ position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.5;
+    background-image:linear-gradient(#e9ecf1 1px,transparent 1px),linear-gradient(90deg,#e9ecf1 1px,transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(ellipse 80% 55% at 50% 0%, #000 30%, transparent 95%);
+  }
+
+  /* subtle cursor (desktop only) */
+  .cursor-ring{ position:fixed; top:0; left:0; width:30px; height:30px; border:1.5px solid rgba(0,145,184,.55);
+    border-radius:50%; transform:translate(-50%,-50%); pointer-events:none; z-index:9999;
+    transition:width .25s, height .25s, background .25s; }
+  .cursor-ring.hover{ width:54px; height:54px; background:rgba(0,181,221,.08); }
+  @media (max-width:900px){ .cursor-ring{ display:none; } }
+
+  .progress{ position:fixed; top:0; left:0; height:2px; width:0; z-index:9998; background:#00b5dd; }
+
+  .glass{ background:rgba(255,255,255,.72); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid var(--line); }
+  .card{ background:#fff; border:1px solid var(--line); transition:transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s, border-color .4s; }
+  .card:hover{ border-color:#cfe9f3; box-shadow:0 24px 50px -28px rgba(16,20,24,.28); }
+
+  .label-line{ display:inline-flex; align-items:center; gap:10px; }
+  .label-line::before{ content:''; width:26px; height:1px; background:var(--accent); }
+
+  /* buttons */
+  .btn-primary{ background:#00b5dd; color:#06323d; font-weight:600; transition:transform .3s, box-shadow .3s; }
+  .btn-primary:hover{ box-shadow:0 14px 28px -12px rgba(0,181,221,.7); }
+  .btn-ghost{ border:1px solid #d7dce3; color:#101418; transition:all .3s; }
+  .btn-ghost:hover{ border-color:#9fb0bb; background:#fff; }
+
+  /* reveal */
+  [data-reveal]{ opacity:0; transform:translateY(28px); transition:opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); }
+  [data-reveal].in{ opacity:1; transform:none; }
+
+  .nav-link{ position:relative; color:#5a6570; transition:color .3s; }
+  .nav-link:hover,.nav-link.active{ color:#101418; }
+  .nav-link::after{ content:''; position:absolute; left:0; bottom:-5px; height:1.5px; width:0; background:var(--accent); transition:width .3s; }
+  .nav-link:hover::after,.nav-link.active::after{ width:100%; }
+
+  /* ===== 3D code/preview hero element ===== */
+  .stage{ perspective:1400px; }
+  .float{ animation:float 7s ease-in-out infinite; transform-style:preserve-3d; }
+  @keyframes float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-14px); } }
+  .deck{ position:relative; transform-style:preserve-3d; transition:transform .25s ease-out; }
+  .panel{ position:absolute; border-radius:16px; }
+
+  .editor{ width:380px; left:0; top:30px; transform:translateZ(60px);
+    background:#0f1622; border:1px solid #1d2940; border-radius:14px; overflow:hidden;
+    box-shadow:0 40px 70px -30px rgba(16,28,48,.6); }
+  .editor .bar{ display:flex; align-items:center; gap:8px; padding:12px 14px; background:#111a29; border-bottom:1px solid #1d2940; }
+  .editor .dot{ width:11px; height:11px; border-radius:50%; }
+  .editor .body{ padding:18px 18px 22px; font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.85; }
+  .ln{ display:block; white-space:pre; }
+  .c-key{ color:#ff8aa6; } .c-fn{ color:#c4a3ff; } .c-str{ color:#9be29b; }
+  .c-tag{ color:#79d0ff; } .c-attr{ color:#ffd58a; } .c-mut{ color:#5b6b86; } .c-txt{ color:#cdd6e6; }
+  .caret{ display:inline-block; width:7px; height:15px; background:#00b5dd; vertical-align:-2px; animation:blink 1s steps(1) infinite; }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .preview{ width:300px; right:-40px; top:150px; transform:translateZ(-30px) translateX(20px);
+    background:#fff; border:1px solid #e7eaef; border-radius:14px; overflow:hidden;
+    box-shadow:0 40px 80px -34px rgba(16,20,24,.35); }
+  .preview .url{ display:flex; align-items:center; gap:8px; padding:11px 14px; background:#f3f5f8; border-bottom:1px solid #e7eaef; }
+  .preview .url .bubble{ flex:1; height:18px; background:#fff; border:1px solid #e7eaef; border-radius:6px; }
+  .preview .content{ padding:22px 20px; }
+  @media (max-width:1100px){ .editor{ width:330px; } .preview{ width:250px; right:0; } }
+  @media (max-width:640px){
+    .deck{ transform:none !important; } .float{ animation:none; }
+    .editor{ position:relative; width:100%; left:0; top:0; transform:none; margin-bottom:-30px; z-index:2; }
+    .preview{ position:relative; width:88%; margin:0 0 0 auto; right:0; top:0; transform:none; }
+  }
+
+  /* avatar tucked behind the editor — a sliver shows at the top-right; grows and slides further out on hover */
+  .avatar{ position:absolute; left:236px; top:-48px; width:182px; height:182px; border-radius:50%;
+    overflow:hidden; border:4px solid #fff; background:#dfe5ec;
+    box-shadow:0 18px 42px -18px rgba(16,28,48,.42);
+    transform:translateZ(12px); z-index:0;
+    transition:transform .6s cubic-bezier(.2,.8,.2,1), box-shadow .6s ease; }
+  .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .avatar .fb{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:3rem; color:#9fb0bb; }
+  .stage:hover .avatar{ transform:translate(-42px,-78px) translateZ(90px) scale(1.5);
+    box-shadow:0 34px 66px -22px rgba(16,28,48,.55); z-index:5; }
+  @media (max-width:640px){ .avatar{ display:none; } }
+
+  /* marquee */
+  .marquee{ display:flex; width:max-content; animation:slide 34s linear infinite; }
+  .marquee:hover{ animation-play-state:paused; }
+  @keyframes slide{ to{ transform:translateX(-50%); } }
+
+  /* inventions: moving highlight that glides between cards */
+  #inv-wrap{ position:relative; }
+  #inv-highlight{ position:absolute; left:0; top:0; border-radius:16px; pointer-events:none; z-index:3;
+    border:2px solid var(--hl,#0091b8); opacity:0; will-change:transform,width,height;
+    transition:border-color .45s ease, box-shadow .45s ease, opacity .4s ease; }
+  .inv-card{ cursor:pointer; transition:transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s, background .4s; }
+
+  /* inline document gallery synced with the cards */
+  .ig{ position:relative; margin-top:48px; }
+  .ig-track{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scroll-behavior:smooth; scrollbar-width:none; }
+  .ig-track::-webkit-scrollbar{ display:none; }
+  .ig-slide{ flex:0 0 100%; scroll-snap-align:center; display:flex; justify-content:center; padding:6px 8px 0; }
+  .ig-slide .doc{ width:100%; max-width:680px; background:#fff; border:1px solid var(--line); border-radius:16px;
+    overflow:hidden; box-shadow:0 26px 56px -30px rgba(16,20,24,.3); }
+  .ig-slide .doc svg{ display:block; width:100%; height:auto; }
+  .ig-nav{ position:absolute; top:42%; transform:translateY(-50%); width:46px; height:46px; border-radius:50%;
+    background:#fff; border:1px solid var(--line); box-shadow:0 10px 24px -12px rgba(0,0,0,.3);
+    cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:4; transition:transform .25s, box-shadow .25s; }
+  .ig-nav:hover{ transform:translateY(-50%) scale(1.08); box-shadow:0 14px 28px -12px rgba(0,0,0,.35); }
+  .ig-prev{ left:-6px; } .ig-next{ right:-6px; }
+  .ig-cap{ text-align:center; margin-top:18px; font-family:'Syne',sans-serif; font-weight:700; font-size:18px; transition:color .4s; }
+  .ig-dots{ display:flex; gap:9px; justify-content:center; margin-top:14px; }
+  .ig-dot{ width:9px; height:9px; border-radius:999px; background:#cfd6dd; cursor:pointer; transition:width .35s, background .35s; }
+  .ig-dot.active{ width:28px; background:var(--hl,#0091b8); }
+  @media (max-width:640px){ .ig-prev,.ig-next{ display:none; } }
+
+  .field{ background:transparent; border:0; border-bottom:1.5px solid #d7dce3; padding:11px 2px; color:#101418; width:100%; transition:border-color .3s; }
+  .field:focus{ outline:none; border-color:var(--primary); }
+  .field::placeholder{ color:#9aa5b1; }
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{ animation:none !important; transition:none !important; }
+    [data-reveal]{ opacity:1; transform:none; } .deck{ transform:none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="backdrop"></div>
+<div class="grid-bg"></div>
+<div class="progress" id="progress"></div>
+<div class="cursor-ring" id="ring"></div>
+
+<!-- NAV -->
+<nav class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-32px)] max-w-container" id="nav">
+  <div class="glass rounded-full px-5 md:px-7 py-3 flex items-center justify-between transition-all duration-300 shadow-sm">
+    <a href="#hero" class="font-display text-2xl font-extrabold tracking-tight">SAMA</a>
+    <div class="hidden md:flex items-center gap-8 text-sm">
+      <a href="#about" class="nav-link" data-nav>About</a>
+      <a href="#stack" class="nav-link" data-nav>Stack</a>
+      <a href="#work" class="nav-link" data-nav>Work</a>
+      <a href="#beyond" class="nav-link" data-nav>Beyond Code</a>
+      <a href="#contact" class="nav-link" data-nav>Contact</a>
+    </div>
+    <a href="#contact" class="btn-primary label-caps px-5 py-2.5 rounded-full" data-magnet>Contact Me</a>
+  </div>
+</nav>
+
+<main>
+<!-- HERO -->
+<section id="hero" class="max-w-container mx-auto px-6 md:px-12 pt-36 md:pt-44 pb-20">
+  <div class="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+    <!-- left: copy -->
+    <div>
+      <p class="label-line label-caps text-accent mb-7" data-reveal>Frontend Developer · Amstelveen</p>
+      <h1 class="font-display font-extrabold tracking-tight leading-[1.04] text-[clamp(2.5rem,6vw,4.6rem)]" data-reveal data-delay="60">
+        I build clean,<br/>fast interfaces<br/>for the web.
+      </h1>
+      <p class="text-ink-soft text-lg leading-relaxed mt-7 max-w-md" data-reveal data-delay="140">
+        Junior frontend developer working in React, Next.js &amp; TypeScript. I care about precise UI, accessible markup, and code that's a pleasure to maintain.
+      </p>
+      <div class="flex flex-wrap gap-4 mt-9" data-reveal data-delay="220">
+        <a href="#work" class="btn-primary px-7 py-3.5 rounded-full label-caps" data-magnet>View My Work</a>
+        <a href="#contact" class="btn-ghost px-7 py-3.5 rounded-full label-caps" data-magnet>Get in Touch</a>
+      </div>
+      <div class="flex items-center gap-7 mt-12" data-reveal data-delay="300">
+        <div><div class="font-display text-3xl font-bold" data-count="13">0</div><p class="text-xs text-ink-soft mt-1">Technologies</p></div>
+        <div class="w-px h-9 bg-line"></div>
+        <div><div class="font-display text-3xl font-bold" data-count="6">0</div><p class="text-xs text-ink-soft mt-1">Awards &amp; Patents</p></div>
+        <div class="w-px h-9 bg-line"></div>
+        <div><div class="font-display text-3xl font-bold">100<span class="text-primary">%</span></div><p class="text-xs text-ink-soft mt-1">Responsive</p></div>
+      </div>
+    </div>
+
+    <!-- right: 3D code → preview element -->
+    <div class="stage h-[460px] sm:h-[480px] flex items-center justify-center" data-reveal data-delay="120">
+      <div class="float">
+        <div class="deck w-[420px] h-[400px]" id="deck">
+          <!-- avatar hidden behind the code -->
+          <div class="avatar">
+            <span class="fb">MM</span>
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtrS_Kv-GQkze11---C5PVG6W_STcDUo3zos7k9Hm-Fkia_-pBu932hqQ1--el5Io1DUvrrXV-4wMn2U2xcdSliuriNLmxcJcDuWlyrILNuSOuryvjlEAJQE6FOe4-ZsxeV_XqtA9drlNX4IP66z5xRrpfI-U88G_RxiwZXMRU_v0wMkKUnDj08XrrCaV7UaZHvTvuQP3lEgwXyA_XEFGIsyj1uLyo_c6w3ROMJcoF8HrALZLhdVFXlqor6fHM716aKTlAxjfQVscZ" alt="Maryam Mahmoudi" onerror="this.remove()"/>
+          </div>
+          <!-- code editor panel -->
+          <div class="panel editor">
+            <div class="bar">
+              <span class="dot" style="background:#ff5f57"></span>
+              <span class="dot" style="background:#febc2e"></span>
+              <span class="dot" style="background:#28c840"></span>
+              <span class="font-mono text-[11px] text-[#5b6b86] ml-2">Hero.tsx</span>
+            </div>
+            <div class="body">
+              <span class="ln"><span class="c-key">export function</span> <span class="c-fn">Hero</span>() {</span>
+              <span class="ln">  <span class="c-key">return</span> (</span>
+              <span class="ln">    <span class="c-mut">&lt;</span><span class="c-tag">section</span> <span class="c-attr">className</span>=<span class="c-str">"hero"</span><span class="c-mut">&gt;</span></span>
+              <span class="ln">      <span class="c-mut">&lt;</span><span class="c-tag">h1</span><span class="c-mut">&gt;</span><span class="c-txt">Hello, I'm Maryam</span><span class="c-mut">&lt;/</span><span class="c-tag">h1</span><span class="c-mut">&gt;</span></span>
+              <span class="ln">      <span class="c-mut">&lt;</span><span class="c-tag">Button</span> <span class="c-attr">intent</span>=<span class="c-str">"primary"</span><span class="c-mut">&gt;</span></span>
+              <span class="ln">        <span class="c-txt" id="type"></span><span class="caret"></span></span>
+              <span class="ln">      <span class="c-mut">&lt;/</span><span class="c-tag">Button</span><span class="c-mut">&gt;</span></span>
+              <span class="ln">    <span class="c-mut">&lt;/</span><span class="c-tag">section</span><span class="c-mut">&gt;</span></span>
+              <span class="ln">  )</span>
+              <span class="ln">}</span>
+            </div>
+          </div>
+          <!-- live preview panel -->
+          <div class="panel preview">
+            <div class="url">
+              <span class="material-symbols-outlined text-[16px] text-[#9aa5b1]">lock</span>
+              <span class="bubble"></span>
+            </div>
+            <div class="content">
+              <p class="label-caps text-accent mb-3" style="font-size:10px">Live Preview</p>
+              <h3 class="font-display text-xl font-bold mb-3 leading-tight">Hello, I'm&nbsp;Maryam</h3>
+              <button class="btn-primary text-[13px] font-semibold px-4 py-2 rounded-full">View My Work</button>
+              <div class="mt-4 flex gap-1.5">
+                <span class="w-8 h-1.5 rounded-full bg-primary"></span>
+                <span class="w-3 h-1.5 rounded-full bg-line"></span>
+                <span class="w-3 h-1.5 rounded-full bg-line"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="border-y border-line py-5 overflow-hidden bg-white/50">
+  <div class="marquee font-display text-xl md:text-2xl font-bold text-ink-soft/55" id="marquee"></div>
+</div>
+
+<!-- ABOUT -->
+<section id="about" class="max-w-container mx-auto px-6 md:px-12 py-24 md:py-32">
+  <div class="grid lg:grid-cols-12 gap-12 items-start">
+    <div class="lg:col-span-5" data-reveal>
+      <p class="label-line label-caps text-accent mb-6">About</p>
+      <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight leading-tight">Frontend first,<br/>curious always.</h2>
+    </div>
+    <div class="lg:col-span-7 space-y-6 text-ink-soft text-lg leading-relaxed" data-reveal data-delay="120">
+      <p>I'm a junior frontend developer based in Amstelveen, building production interfaces with React, Next.js and TypeScript. My focus is the details that make a UI feel right — responsive layouts, accessible components, smooth interaction, and clean, testable code.</p>
+      <p>Outside of the browser I'm a maker at heart, with a handful of inventions and international awards to show for it. That same problem-solving instinct is what I bring to the frontend every day.</p>
+      <div class="flex flex-wrap gap-x-10 gap-y-4 pt-4">
+        <div><p class="label-caps text-ink-soft/70 mb-1">Based in</p><p class="font-medium text-ink">Amstelveen, NL</p></div>
+        <div><p class="label-caps text-ink-soft/70 mb-1">Focus</p><p class="font-medium text-ink">React · UI Engineering</p></div>
+        <div><p class="label-caps text-ink-soft/70 mb-1">Open to</p><p class="font-medium text-ink">Junior FE roles</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STACK -->
+<section id="stack" class="max-w-container mx-auto px-6 md:px-12 py-24 md:py-32">
+  <div class="mb-12" data-reveal>
+    <p class="label-line label-caps text-accent mb-6">The Stack</p>
+    <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Tools I work with daily</h2>
+  </div>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-line rounded-2xl overflow-hidden border border-line" id="stack-grid"></div>
+</section>
+
+<!-- WORK / EXPERIENCE -->
+<section id="work" class="max-w-container mx-auto px-6 md:px-12 py-24 md:py-32">
+  <div class="grid lg:grid-cols-12 gap-12">
+    <div class="lg:col-span-4" data-reveal>
+      <p class="label-line label-caps text-accent mb-6">Experience</p>
+      <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight leading-tight">Where I've<br/>been building</h2>
+    </div>
+    <div class="lg:col-span-8" data-reveal data-delay="120">
+      <div class="card rounded-2xl p-8 md:p-10">
+        <div class="flex flex-wrap justify-between items-start gap-3 mb-5">
+          <div>
+            <h3 class="font-display text-2xl font-bold">Intern / Junior Frontend Developer</h3>
+            <p class="text-accent font-medium mt-1">NEOM &amp; Partners Group</p>
+          </div>
+          <span class="label-caps text-accent px-3 py-1.5 rounded-full bg-primary/10 whitespace-nowrap">Nov 2024 — Present</span>
+        </div>
+        <ul class="space-y-3 text-ink-soft">
+          <li class="flex gap-3"><span class="material-symbols-outlined text-primary text-[18px] mt-0.5">check_circle</span>Building high-performance B2B gift card and eSIM platforms.</li>
+          <li class="flex gap-3"><span class="material-symbols-outlined text-primary text-[18px] mt-0.5">check_circle</span>Working in a modern stack: React, Next.js, Tailwind CSS and TypeScript.</li>
+          <li class="flex gap-3"><span class="material-symbols-outlined text-primary text-[18px] mt-0.5">check_circle</span>Ensuring stability with rigorous end-to-end testing in Playwright.</li>
+          <li class="flex gap-3"><span class="material-symbols-outlined text-primary text-[18px] mt-0.5">check_circle</span>Collaborating in an agile team to ship seamless user experiences.</li>
+        </ul>
+        <div class="mt-8 pt-6 border-t border-line flex flex-wrap gap-2">
+          <span class="label-caps text-ink-soft px-3 py-1.5 rounded-full bg-bg">React</span>
+          <span class="label-caps text-ink-soft px-3 py-1.5 rounded-full bg-bg">Next.js</span>
+          <span class="label-caps text-ink-soft px-3 py-1.5 rounded-full bg-bg">TypeScript</span>
+          <span class="label-caps text-ink-soft px-3 py-1.5 rounded-full bg-bg">Tailwind</span>
+          <span class="label-caps text-ink-soft px-3 py-1.5 rounded-full bg-bg">Playwright</span>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-8 md:p-10 mt-5">
+        <div class="flex flex-wrap justify-between items-start gap-3 mb-3">
+          <div>
+            <h3 class="font-display text-2xl font-bold">Education</h3>
+            <p class="text-ink-soft mt-1">Foundations in marketing &amp; management</p>
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-6 mt-4">
+          <div><p class="label-caps text-accent mb-1">2023 — Present</p><p class="font-medium">M. of Marketing in Tourism</p><p class="text-ink-soft text-sm">University of Tehran</p></div>
+          <div><p class="label-caps text-accent mb-1">2019 — 2023</p><p class="font-medium">B. of Tourism Management</p><p class="text-ink-soft text-sm">University of Shiraz</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BEYOND CODE -->
+<section id="beyond" class="max-w-container mx-auto px-6 md:px-12 py-24 md:py-32">
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-12" data-reveal>
+    <div>
+      <p class="label-line label-caps text-accent mb-6">Beyond Code</p>
+      <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Inventions &amp; recognition</h2>
+    </div>
+    <p class="text-ink-soft max-w-sm">The maker side of my work. Browse the documents below — pick a card or page through, and the matching certificate follows along.</p>
+  </div>
+
+  <!-- cards with a highlight that glides to the active one -->
+  <div id="inv-wrap">
+    <div id="inv-highlight"></div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5" id="inventions-grid"></div>
+  </div>
+
+  <!-- inline document gallery, synced to the cards above -->
+  <div class="ig" id="ig" data-reveal data-delay="120">
+    <button class="ig-nav ig-prev" aria-label="Previous document"><span class="material-symbols-outlined">chevron_left</span></button>
+    <div class="ig-track" id="ig-track"></div>
+    <button class="ig-nav ig-next" aria-label="Next document"><span class="material-symbols-outlined">chevron_right</span></button>
+    <p class="ig-cap" id="ig-cap"></p>
+    <div class="ig-dots" id="ig-dots"></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="max-w-container mx-auto px-6 md:px-12 py-24 md:py-32">
+  <div class="card rounded-3xl p-8 md:p-14" data-reveal>
+    <div class="grid lg:grid-cols-2 gap-12">
+      <div>
+        <p class="label-line label-caps text-accent mb-6">Contact</p>
+        <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6">Let's build<br/>something good.</h2>
+        <p class="text-ink-soft text-lg leading-relaxed mb-10 max-w-md">Open to junior frontend roles and collaborations. Happy to chat about UI, React, or a project you have in mind.</p>
+        <div class="space-y-5">
+          <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-full bg-bg flex items-center justify-center text-accent"><span class="material-symbols-outlined text-[20px]">location_on</span></div>
+            <div><p class="label-caps text-ink-soft/70">Location</p><p class="font-medium">Amstelveen, Netherlands</p></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-full bg-bg flex items-center justify-center text-accent"><span class="material-symbols-outlined text-[20px]">mail</span></div>
+            <div><p class="label-caps text-ink-soft/70">Email</p><p class="font-medium">hello@samamahmoudi.com</p></div>
+          </div>
+        </div>
+      </div>
+      <form class="space-y-7" id="form">
+        <div class="grid sm:grid-cols-2 gap-7">
+          <div><label class="label-caps text-ink-soft/70">Name</label><input class="field mt-2" type="text" placeholder="Your name" required/></div>
+          <div><label class="label-caps text-ink-soft/70">Email</label><input class="field mt-2" type="email" placeholder="you@email.com" required/></div>
+        </div>
+        <div><label class="label-caps text-ink-soft/70">Message</label><textarea class="field mt-2 resize-none" rows="4" placeholder="Tell me about your project…" required></textarea></div>
+        <button type="submit" class="btn-primary w-full py-4 rounded-full label-caps" data-magnet id="send">Send Message</button>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="border-t border-line py-14">
+  <div class="max-w-container mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-5 text-center md:text-left">
+    <div>
+      <span class="font-display text-2xl font-extrabold tracking-tight">SAMA</span>
+      <p class="text-ink-soft text-sm mt-1">© 2024 Maryam Mahmoudi · Frontend Developer</p>
+    </div>
+    <div class="flex gap-7 text-sm">
+      <a href="#" class="nav-link">LinkedIn</a><a href="#" class="nav-link">GitHub</a><a href="#" class="nav-link">ReadCV</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* marquee */
+(() => {
+  const items = ['React','Next.js','TypeScript','Tailwind CSS','Playwright','Accessibility','Responsive UI','Clean Code'];
+  const dot = ' &nbsp;·&nbsp; ';
+  const set = items.join(dot) + dot;
+  document.getElementById('marquee').innerHTML = `<span class="px-2">${set}</span><span class="px-2">${set}</span>`;
+})();
+
+/* looping typewriter inside code editor */
+(() => {
+  const el = document.getElementById('type'); if(!el) return;
+  const phrases = ['View My Work','Say Hello','See My Projects',"Let's Talk"];
+  let pi = 0, ci = 0, deleting = false;
+  (function tick(){
+    const w = phrases[pi];
+    el.textContent = w.slice(0, ci);
+    if (!deleting) {
+      if (ci < w.length) { ci++; setTimeout(tick, 85); }
+      else { deleting = true; setTimeout(tick, 1500); }
+    } else {
+      if (ci > 0) { ci--; setTimeout(tick, 40); }
+      else { deleting = false; pi = (pi + 1) % phrases.length; setTimeout(tick, 320); }
+    }
+  })();
+})();
+
+/* stack grid */
+(() => {
+  const data = [
+    ['React','Component architecture, hooks, state management.','code'],
+    ['Next.js','Routing, SSR/SSG and performance-first builds.','bolt'],
+    ['TypeScript','Type-safe, self-documenting codebases.','data_object'],
+    ['Tailwind CSS','Design-system-driven, responsive styling.','palette'],
+    ['Playwright','End-to-end testing &amp; reliable QA.','verified'],
+    ['Git & Teamwork','Agile collaboration and clean version control.','group'],
+  ];
+  const g = document.getElementById('stack-grid');
+  data.forEach((d,i) => {
+    const c = document.createElement('div');
+    c.className = 'bg-surface p-8 transition-colors hover:bg-bg group';
+    c.setAttribute('data-reveal',''); c.setAttribute('data-delay',i*110);
+    c.innerHTML = `
+      <span class="material-symbols-outlined text-accent text-3xl mb-5 block">${d[2]}</span>
+      <h3 class="font-display text-lg font-bold mb-2">${d[0]}</h3>
+      <p class="text-ink-soft text-[15px] leading-relaxed">${d[1]}</p>`;
+    g.appendChild(c);
+  });
+})();
+
+/* inventions cards + synced document gallery with a gliding highlight */
+(() => {
+  const items = [
+    { icon:'workspace_premium', tag:'Gold Award',  tone:'gold',  color:'#c8920a', title:'Educational-Therapeutic Vest', desc:'Medical device for sensory therapy and cognitive development.', date:'Geneva, 2022', kind:'Achievement', sub:'Gold Award · Geneva Int. Exhibition of Inventions', badge:'GOLD' },
+    { icon:'military_tech',     tag:'Silver Award', tone:'silver',color:'#7c8694', title:'Multi-layer Sleeping Bag',      desc:'Awarded at Geneva for innovative textile engineering.',         date:'Geneva, 2021', kind:'Achievement', sub:'Silver Award · Geneva Int. Exhibition of Inventions', badge:'SILVER' },
+    { icon:'solar_power',       tag:'Silver Award', tone:'silver',color:'#7c8694', title:'Solar Baby Carrier Bag',        desc:'Renewable energy in everyday mobility products.',                date:'Geneva, 2022', kind:'Achievement', sub:'Silver Award · Geneva Int. Exhibition of Inventions', badge:'SILVER' },
+    { icon:'masks',             tag:'Patented',     tone:'blue',  color:'#0091b8', title:'Pollution Filtering Mask',      desc:'High-efficiency pollution filtering technology.',               date:'March 2021',  kind:'Patent',      sub:'Registered Patent · High-efficiency filtration',     badge:'PATENT' },
+    { icon:'bolt',              tag:'Patented',     tone:'blue',  color:'#0091b8', title:'Electric Motor Winding',        desc:'Winding technique for efficiency and power delivery.',          date:'July 2021',   kind:'Patent',      sub:'Registered Patent · Efficiency & power delivery',    badge:'PATENT' },
+    { icon:'verified',          tag:'Member',       tone:'blue',  color:'#0091b8', title:'IFIA Inventor Member',          desc:'International Federation of Inventors recognition.',            date:'May 2021',    kind:'Membership',  sub:'International Federation of Inventors’ Associations', badge:'IFIA' },
+  ];
+  const toneCls = { gold:['text-amber-500','text-amber-600 bg-amber-50'], silver:['text-slate-400','text-slate-500 bg-slate-100'], blue:['text-accent','text-accent bg-primary/10'] };
+
+  const cert = d => `
+    <svg viewBox="0 0 820 580" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+      <rect width="820" height="580" fill="#ffffff"/>
+      <rect x="22" y="22" width="776" height="536" fill="none" stroke="${d.color}" stroke-width="2"/>
+      <rect x="34" y="34" width="752" height="512" fill="none" stroke="${d.color}" stroke-opacity=".35"/>
+      <text x="410" y="108" text-anchor="middle" font-size="14" letter-spacing="6" fill="#5a6570">CERTIFICATE OF ${d.kind.toUpperCase()}</text>
+      <line x1="345" y1="128" x2="475" y2="128" stroke="${d.color}" stroke-width="2"/>
+      <text x="410" y="200" text-anchor="middle" font-family="Syne, sans-serif" font-weight="800" font-size="40" fill="#101418">${d.title}</text>
+      <text x="410" y="252" text-anchor="middle" font-size="16" fill="#5a6570">Awarded to</text>
+      <text x="410" y="300" text-anchor="middle" font-family="Syne, sans-serif" font-weight="700" font-size="32" fill="${d.color}">Maryam Mahmoudi</text>
+      <text x="410" y="344" text-anchor="middle" font-size="14" fill="#5a6570">${d.sub}</text>
+      <circle cx="410" cy="424" r="42" fill="none" stroke="${d.color}" stroke-width="2"/>
+      <circle cx="410" cy="424" r="32" fill="${d.color}" fill-opacity=".12"/>
+      <text x="410" y="430" text-anchor="middle" font-size="13" font-weight="700" letter-spacing="1" fill="${d.color}">${d.badge}</text>
+      <line x1="130" y1="500" x2="310" y2="500" stroke="#c9d0d8"/>
+      <text x="220" y="522" text-anchor="middle" font-size="12" fill="#9aa5b1">${d.date}</text>
+      <line x1="510" y1="500" x2="690" y2="500" stroke="#c9d0d8"/>
+      <text x="600" y="522" text-anchor="middle" font-size="12" fill="#9aa5b1">Authorized Signature</text>
+    </svg>`;
+
+  const grid = document.getElementById('inventions-grid');
+  const hl   = document.getElementById('inv-highlight');
+  const track= document.getElementById('ig-track');
+  const dotsEl = document.getElementById('ig-dots');
+  const cap  = document.getElementById('ig-cap');
+  const cards = [];
+
+  items.forEach((d,i) => {
+    const t = toneCls[d.tone];
+    const c = document.createElement('div');
+    c.className = 'inv-card card rounded-2xl p-7 flex flex-col';
+    c.setAttribute('data-reveal',''); c.setAttribute('data-delay', i*90);
+    c.innerHTML = `
+      <div class="flex justify-between items-start mb-5">
+        <span class="material-symbols-outlined text-3xl ${t[0]}">${d.icon}</span>
+        <span class="label-caps px-3 py-1.5 rounded-full ${t[1]}">${d.tag}</span>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-2">${d.title}</h3>
+      <p class="text-ink-soft text-[15px] leading-relaxed">${d.desc}</p>
+      <div class="mt-auto pt-5 label-caps text-ink-soft/60">${d.date}</div>`;
+    c.addEventListener('click', () => goTo(i));
+    grid.appendChild(c); cards.push(c);
+
+    const s = document.createElement('div'); s.className = 'ig-slide';
+    s.innerHTML = `<div class="doc">${cert(d)}</div>`; track.appendChild(s);
+
+    const dot = document.createElement('button'); dot.className = 'ig-dot'; dot.setAttribute('aria-label','Document '+(i+1));
+    dot.addEventListener('click', () => goTo(i)); dotsEl.appendChild(dot);
+  });
+  const dots = [...dotsEl.children];
+
+  const rgba = (hex,a) => { const n = parseInt(hex.slice(1),16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; };
+  let active = 0, shown = false;
+
+  // highlight geometry interpolated for a fractional position f (0..n-1) so it glides with the scroll
+  function render(f){
+    const max = items.length - 1;
+    f = Math.max(0, Math.min(max, f));
+    const a = Math.floor(f), b = Math.min(max, a + 1), t = f - a;
+    const ca = cards[a], cb = cards[b]; if (!ca || !cb) return;
+    const lerp = (p,q) => p + (q - p) * t;
+    const col = t < .5 ? items[a].color : items[b].color;
+    hl.style.width  = lerp(ca.offsetWidth,  cb.offsetWidth)  + 'px';
+    hl.style.height = lerp(ca.offsetHeight, cb.offsetHeight) + 'px';
+    hl.style.transform = `translate(${lerp(ca.offsetLeft, cb.offsetLeft)}px, ${lerp(ca.offsetTop, cb.offsetTop)}px)`;
+    hl.style.borderColor = col;
+    hl.style.boxShadow = `0 0 0 5px ${rgba(col,.12)}, 0 22px 46px -22px ${rgba(col,.5)}`;
+    if (shown) hl.style.opacity = 1;
+  }
+  function paint(i){
+    dots.forEach((d,k) => { d.classList.toggle('active', k===i); d.style.setProperty('--hl', items[i].color); });
+    cap.textContent = items[i].title;
+    cap.style.color = items[i].color;
+  }
+  function goTo(i){ track.scrollTo({ left: i * track.clientWidth, behavior:'smooth' }); }
+
+  // single source of truth: the scroll position drives the highlight every frame
+  let raf;
+  function follow(){
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      const cw = track.clientWidth || 1;
+      const f = track.scrollLeft / cw;
+      render(f);
+      const i = Math.max(0, Math.min(items.length-1, Math.round(f)));
+      if (i !== active) { active = i; paint(i); }
+    });
+  }
+  track.addEventListener('scroll', follow, { passive:true });
+
+  document.querySelector('.ig-prev').addEventListener('click', () => goTo(Math.max(0, active-1)));
+  document.querySelector('.ig-next').addEventListener('click', () => goTo(Math.min(items.length-1, active+1)));
+
+  // initial position (layout is correct even before reveal); reveal highlight when section enters view
+  const relayout = () => { const f = track.scrollLeft / (track.clientWidth || 1); render(f); };
+  render(0); paint(0);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+  window.addEventListener('load', relayout);
+  window.addEventListener('resize', () => { clearTimeout(window.__rz); window.__rz = setTimeout(relayout, 120); });
+
+  const showObs = new IntersectionObserver((es) => {
+    es.forEach(e => { if (e.isIntersecting) { shown = true; setTimeout(relayout, 100); showObs.unobserve(e.target); } });
+  }, { threshold:.2 });
+  showObs.observe(document.getElementById('inv-wrap'));
+})();
+
+/* reveal */
+const revObs = new IntersectionObserver((es) => {
+  es.forEach(e => { if (e.isIntersecting){ e.target.style.transitionDelay = (e.target.dataset.delay||0)+'ms'; e.target.classList.add('in'); revObs.unobserve(e.target); } });
+}, { threshold:.12, rootMargin:'0px 0px -50px 0px' });
+document.querySelectorAll('[data-reveal]').forEach(el => revObs.observe(el));
+
+/* count up */
+const cntObs = new IntersectionObserver((es) => {
+  es.forEach(e => { if(!e.isIntersecting) return; const el=e.target, end=+el.dataset.count; let n=0;
+    const step=Math.max(1,Math.round(end/24)); (function t(){ n=Math.min(end,n+step); el.textContent=n; if(n<end) requestAnimationFrame(t); })(); cntObs.unobserve(el); });
+}, { threshold:.6 });
+document.querySelectorAll('[data-count]').forEach(el => cntObs.observe(el));
+
+/* scroll progress + nav */
+const progress = document.getElementById('progress'), navBox = document.querySelector('#nav > div');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  progress.style.width = (h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+  navBox.classList.toggle('!py-2', window.scrollY > 50);
+}, { passive:true });
+
+/* active nav */
+const links = [...document.querySelectorAll('[data-nav]')];
+const secObs = new IntersectionObserver((es) => {
+  es.forEach(e => { if (e.isIntersecting) links.forEach(l => l.classList.toggle('active', l.getAttribute('href')==='#'+e.target.id)); });
+}, { threshold:.3 });
+['about','stack','work','beyond','contact'].forEach(id => { const s=document.getElementById(id); if(s) secObs.observe(s); });
+
+/* 3D deck parallax (mouse-driven) */
+const fine = window.matchMedia('(pointer:fine)').matches;
+const deck = document.getElementById('deck');
+if (fine && deck) {
+  const stage = deck.closest('.stage');
+  stage.addEventListener('mousemove', (e) => {
+    const r = stage.getBoundingClientRect();
+    const px = (e.clientX-r.left)/r.width - .5, py = (e.clientY-r.top)/r.height - .5;
+    deck.style.transform = `rotateY(${px*14}deg) rotateX(${-py*12}deg)`;
+  });
+  stage.addEventListener('mouseleave', () => { deck.style.transform = ''; });
+}
+
+/* subtle cursor + magnetic buttons */
+if (fine) {
+  const ring = document.getElementById('ring'); let mx=0,my=0,rx=0,ry=0;
+  window.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
+  (function loop(){ rx+=(mx-rx)*.2; ry+=(my-ry)*.2; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(loop); })();
+  document.querySelectorAll('a, button, input, textarea, .card').forEach(el => {
+    el.addEventListener('mouseenter', () => ring.classList.add('hover'));
+    el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
+  });
+  document.querySelectorAll('[data-magnet]').forEach(el => {
+    el.addEventListener('mousemove', e => { const r=el.getBoundingClientRect(); el.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.25}px,${(e.clientY-r.top-r.height/2)*.35}px)`; });
+    el.addEventListener('mouseleave', () => el.style.transform=''); 
+  });
+}
+/* form — opens a pre-filled email to Maryam */
+document.getElementById('form').addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target;
+  const name  = f.querySelector('input[type=text]').value.trim();
+  const email = f.querySelector('input[type=email]').value.trim();
+  const msg   = f.querySelector('textarea').value.trim();
+  const subject = encodeURIComponent('Portfolio enquiry from ' + (name || 'website visitor'));
+  const body    = encodeURIComponent(msg + '\n\n— ' + name + '\n' + email);
+  window.location.href = 'mailto:mahmoodi.sm76@gmail.com?subject=' + subject + '&body=' + body;
+  const b = document.getElementById('send'); b.textContent = 'Opening your email app…';
+  setTimeout(() => { b.textContent = 'Send Message'; }, 3200);
+});
+</script>
+</body>
+</html>
