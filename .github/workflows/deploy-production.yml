@@ -2,7 +2,7 @@ name: Deploy Production
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   workflow_dispatch:
 
 concurrency:
@@ -12,6 +12,7 @@ concurrency:
 env:
   NODE_VERSION: "20"
   PNPM_VERSION: "9.12.0"
+  FIREBASE_PROJECT_ID: "sama-mahmoudi-portfolio-060126"
 
 jobs:
   deploy:
@@ -29,9 +30,16 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build
+      - name: Check Firebase secrets
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT == '' }}
+        run: |
+          echo "Missing required secret: FIREBASE_SERVICE_ACCOUNT"
+          echo "Create it in GitHub -> Settings -> Secrets and variables -> Actions"
+          exit 1
       - uses: FirebaseExtended/action-hosting-deploy@v0
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          projectId: ${{ env.FIREBASE_PROJECT_ID }}
           channelId: live
