@@ -15,6 +15,9 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -28,16 +31,17 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build
-      - name: Check Firebase secrets
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT == '' }}
+      - name: Check OIDC variables
+        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' || vars.GCP_SERVICE_ACCOUNT_EMAIL == '' }}
         run: |
-          echo "Missing required secret: FIREBASE_SERVICE_ACCOUNT"
-          echo "Create it in GitHub -> Settings -> Secrets and variables -> Actions"
+          echo "Missing required repository variables for OIDC auth."
+          echo "Set GCP_WORKLOAD_IDENTITY_PROVIDER and GCP_SERVICE_ACCOUNT_EMAIL"
+          echo "in GitHub -> Settings -> Secrets and variables -> Actions -> Variables."
           exit 1
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+      - name: Authenticate to Google Cloud (OIDC)
+        uses: google-github-actions/auth@v2
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: ${{ env.FIREBASE_PROJECT_ID }}
-          channelId: live
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
+      - name: Deploy to Firebase Hosting
+        run: pnpm exec firebase deploy --only hosting --project ${{ env.FIREBASE_PROJECT_ID }}
