@@ -137,7 +137,7 @@ export const contactEmail = 'mahmoodi.sm76@gmail.com';
 export const socialLinks: SocialLink[] = [
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/maryam-mahmoudi-899aab382/' },
   { label: 'GitHub', href: 'https://github.com/SamaMahmoudi' },
-  { label: 'CV', href: '/Maryam%20Mahmoudi%20.pdf' },
+  { label: 'CV', href: '/Maryam-Mahmoudi.pdf' },
 ];
 
 export const avatarUrl = '/images/avatar.jpg';
