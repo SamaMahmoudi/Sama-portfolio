@@ -55,17 +55,22 @@ export function HeroSection({ typewriterText, deckRef, socialLinks }: HeroSectio
             </ButtonLink>
           </div>
           <div className="mt-5 flex flex-wrap gap-3" data-delay="280" data-reveal>
-            {heroLinks.map((link) => (
-              <a
-                className="btn-ghost inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold"
-                href={link.href}
-                key={link.label}
-                rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                target={link.href.startsWith('http') ? '_blank' : undefined}
-              >
-                {link.label}
-              </a>
-            ))}
+            {heroLinks.map((link) => {
+              const isCvLink = link.label.toLowerCase() === 'cv' || link.href.toLowerCase().endsWith('.pdf');
+
+              return (
+                <a
+                  className="btn-ghost inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold"
+                  download={isCvLink ? 'Maryam-Mahmoudi-CV.pdf' : undefined}
+                  href={link.href}
+                  key={link.label}
+                  rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  target={link.href.startsWith('http') ? '_blank' : undefined}
+                >
+                  {link.label}
+                </a>
+              );
+            })}
           </div>
         </div>
         <motion.div
